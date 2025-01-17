@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glitchy Jittery Loop with Controls</title>
+    <script src="https://cdn.jsdelivr.net/npm/guify@0.12.0/lib/guify.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+        }
+        #glitch-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: monospace;
+            font-size: 24px;
+            color: #0f0;
+            text-shadow: 2px 2px 4px rgba(0, 255, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="glitch-container"></div>
+
+    <script>
+        const container = document.getElementById('glitch-container');
+        let glitchInterval;
+
+        // Glitch parameters
+        let params = {
+            glitchChance: 1,
+            positionJitter: 2,
+            colorChangeChance: 1,
+            updateInterval: 50,
+            fontSize: 24,
+            text: "<YOU HAVE ENTERED THE ZONE>"
+        };
+
+        // Create Guify instance
+        const gui = new guify({
+            title: 'Glitch Controls',
+            theme: 'dark',
+            align: 'right',
+            width: 300,
+            barMode: 'none'
+        });
+
+        gui.Register({
+            type: 'text',
+            label: 'Glitch Text',
+            object: params, property: 'text',
+            onChange: () => {
+                applyGlitch();
+            }
+        });
+
+        gui.Register({
+            type: 'range',
+            label: 'Glitch Chance',
+            min: 0, max: 1, step: 0.01,
+            object: params, property: 'glitchChance'
+        });
+
+        gui.Register({
+            type: 'range',
+            label: 'Position Jitter',
+            min: 0, max: 2, step: 0.1,
+            object: params, property: 'positionJitter'
+        });
+        
+        gui.Register({
+            type: 'range',
+            label: 'Color Change Chance',
+            min: 0, max: 1, step: 0.01,
+            object: params, property: 'colorChangeChance'
+        });
+
+        gui.Register({
+            type: 'range',
+            label: 'Update Interval (ms)',
+            min: 10, max: 500, step: 10,
+            object: params, property: 'updateInterval',
+            onChange: () => {
+                startGlitchEffect();
+            }
+        });
+
+        gui.Register({
+            type: 'range',
+            label: 'Font Size',
+            min: 12, max: 48, step: 1,
+            object: params, property: 'fontSize',
+            onChange: (value) => {
+                container.style.fontSize = `${value}px`;
+            }
+        });
+
+        function createGlitchText() {
+            return params.text.split('').map(char => {
+                if (Math.random() < params.glitchChance && ![" ","<",">"].includes(char)) {
+                    return String.fromCharCode(33 + Math.floor(Math.random() * 94));
+                }
+                return char;
+            }).join('');
+        }
+
+        function randColor(){
+            return 64+Math.round(Math.random())*128;
+        }
+
+        function applyGlitch() {
+            params.colorChangeChance *= 0.95;
+            params.positionJitter *= 0.95;
+            params.glitchChance *= 0.95;
+            container.textContent = createGlitchText();
+            container.style.left = `${50 + (Math.random() * params.positionJitter - params.positionJitter/2)}%`;
+            container.style.top = `${50 + (Math.random() * params.positionJitter - params.positionJitter/2)}%`;
+            
+            if (Math.random() < params.colorChangeChance) {
+                container.style.color = `rgb(${randColor()},${randColor()},${randColor()})`;
+            } else {
+                container.style.color = '#0f0';
+            }
+        }
+
+        function startGlitchEffect() {
+            clearInterval(glitchInterval);
+            glitchInterval = setInterval(applyGlitch, params.updateInterval);
+        }
+
+        startGlitchEffect();
+    </script>
+</body>
+</html>
